@@ -1,0 +1,71 @@
+#include <entityManager.h>
+#include <utils.h>
+
+void InitEntityManager(EntityManager *man,SDL_Renderer *renderer)
+{
+	man->renderer = renderer;
+	man->entities = Vector_init(sizeof(Entity));
+	Vector_reserve(man->entities,1000);
+	Init_TextureManager(&man->tman,renderer);
+}
+void LoadSprite_EntityManager(EntityManager *man,const char* path,char* sprite)
+{
+	Load_TextureManager(&man->tman,path,sprite);
+}
+void CreateEntity(EntityManager *man,char* sprite,char *name)
+{
+	Entity e;
+	Texture *t = Search_TextureManager(&man->tman,sprite);
+	InitEntity(&e,t,name,man->renderer);
+	e.STATESPRITE = ANIMATION_TOKEN_STATIC;
+	Vec2Zero(&e.position);
+	Vec2Zero(&e.velocity);
+	Vec2Zero(&e.aceleration);
+	Vector_pushback(man->entities,&e);
+}
+void ChangSprite_EntityManager(EntityManager *man,const char *entity,const char* sprite)
+{
+	Texture *t = Search_TextureManager(&man->tman,sprite);
+	Entity * e = SearchEntity(man,entity);
+	ChangSprite(e,t);
+}
+Entity *SearchEntity(EntityManager *man,const char* name)
+{
+	if(!man->entities->size) return NULL;
+	Entity *e = Vector_getValue(man->entities,0);
+	for(uint32_t i=0; i<man->entities->size; i++)
+		if(!strcmp(name,(e++)->id)) return --e;
+	return NULL;
+}
+void DrawEntities(EntityManager *man,float dt,SDL_FRect cam)
+{
+	if(!man->entities->size) return;
+	Entity *e = Vector_getValue(man->entities,0);
+	for(uint32_t i=0; i<man->entities->size; i++)
+		DrawEntity(e++,dt,cam);
+}
+void DestroyEntityManager(EntityManager *man)
+{
+	Entity *e = Vector_getValue(man->entities,0);
+	for(uint32_t i=0; i<man->entities->size; i++)
+		DestroyEntity(e++);
+	Free_TextureManager(&man->tman);
+	Vector_destroy(man->entities);
+}
+void Void_TexturesAndEntities(EntityManager *man)
+{
+	if(!man->entities->size || !man->tman.textures->size) return;
+	Entity *e = Vector_getValue(man->entities,0);
+	Texture *t = Vector_getValue(man->tman.textures,0);
+	for(uint32_t i=0; i<man->entities->size; i++)
+		DestroyEntity(e++);
+	for(uint32_t i=0; i<man->tman.textures->size; i++){
+		SDL_DestroyTexture(t->texture);
+		free((t++)->id);
+	}
+	man->entities->size = 0;
+	man->tman.textures->size = 0;
+}
+
+
+
