@@ -87,11 +87,18 @@ void SetDimension(Entity* e,float scale)
 
 
 float GetDeltaTime(APP* app){ return app->dt; }
-SDL_FRect GetCam(APP *app) { return app->cam; }
+SDL_FRect GetCam(APP *app) {
+	int x,y;
+	SDL_GetWindowSize(app->window,&x,&y);
+	app->cam.w = (float)x;
+	app->cam.h = (float)y;
+	return app->cam;
+}
 bool GetEvent(APP* app,uint32_t EVENT)
 {
 	//const bool* keys = SDL_GetKeyboardState(nullptr);
 	//return keys[EVENT];
+	(void)app;
 	return (SDL_GetKeyboardState(nullptr))[EVENT];
 }
 
@@ -152,6 +159,14 @@ void Destroy(APP *app)
 
 int main()
 {
-	SDL_Log("sizeof(APP) => %d",sizeof(APP));
+	SDL_Log("\033c");
+	SDL_Log("sizeof(Entity)         => %ld BYTES",sizeof(Entity));
+	SDL_Log("sizeof(EntityManager)  => %ld BYTES",sizeof(EntityManager));
+	SDL_Log("sizeof(APP)            => %ld BYTES",sizeof(APP));
+	SDL_Log("sizeof(Timer)          => %ld BYTES",sizeof(Timer));
+	SDL_Log("sizeof(Engine)         => %ld BYTES",sizeof(Engine));
+	SDL_Log("sizeof(Physics)        => %ld BYTES",sizeof(Physics));
+	SDL_Log("sizeof(TextureManager) => %ld BYTES",sizeof(TextureManager));
+	SDL_Log("sizeof(Texture)        => %ld BYTES",sizeof(Texture));
 }
 

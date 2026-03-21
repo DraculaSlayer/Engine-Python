@@ -1,6 +1,6 @@
 #include <physicsSystem.h>
 
-void Init_physicsSystem(Phisics *p,EntityManager *man,SDL_Window *window)
+void Init_physicsSystem(Physics *p,EntityManager *man,SDL_Window *window)
 {
 	SDL_GetWindowSize(window,&p->WIDTH_t,&p->HEIGHT_t);
 	p->window = window;
@@ -13,7 +13,18 @@ void Init_physicsSystem(Phisics *p,EntityManager *man,SDL_Window *window)
 	}
 }
 
-void physicsSystem(Phisics *p,EntityManager *man,float dt)
+bool DetectColision(SDL_FRect e1,SDL_FRect e2)
+{
+	Vec2 res = { // Center of the entities less the center of the other entity
+		.x = (e2.x - (e2.w*0.5f)) - (e1.x - (e1.w*0.5f)),
+		.y = (e2.y - (e2.h*0.5f)) - (e1.y - (e1.h*0.5f))
+	};
+	double moduleQuad = (res.x*res.x) + (res.y*res.y);
+	double addRadio = (e1.w*0.5f) + (e2.w*0.5f);
+	return (moduleQuad <= addRadio*addRadio);
+}
+
+void physicsSystem(Physics *p,EntityManager *man,float dt)
 {
 	(void)p;
 	const float speed = 400.f;
@@ -21,17 +32,39 @@ void physicsSystem(Phisics *p,EntityManager *man,float dt)
 	SDL_GetWindowSize(p->window,&width,&height);
 	Entity *e = Vector_getValue(man->entities,0);
 	for(uint32_t i=0; i<man->entities->size; i++){
-		if(e->position.y < width)
+		if(e->position.y < height)
 			e->velocity.y += e->aceleration.y;
 		e->velocity.x += e->aceleration.x;
+		Entity* e2 = e+1;
+		for(uint32_t j=i+1; j<man->entities->size; ++j){
+			if(DetectColision(e->dimension,e2->dimension)){
+				if(e->colisions){
+					e->velocity.x *= -1.f;
+					e->velocity.y *= -1.f;
+					e->aceleration.x = 0.f;
+					e->aceleration.y = 0.f;
+				}
+				if(e2->colisions){
+					e2->velocity.x *= -1.f;
+					e2->velocity.y *= -1.f;
+					e2->aceleration.x = 0.f;
+					e2->aceleration.y = 0.f;
+				}
+			} e2++;
+		}
 		e->position.x += speed * e->velocity.x * dt;
 		e->position.y += speed * e->velocity.y * dt;
 		e->dimension.x = e->position.x;
 		e->dimension.y = e->position.y;
-		if((e->position.x + e->dimension.w) >= width) e->position.x = width - e->dimension.w;
-		if(e->position.x <= 0) e->position.x = 0;
-		if((e->position.y + e->dimension.h) >= height) e->position.y = height - e->dimension.h;
-		if(e->position.y <= 0) e->position.y = 0;
+		//if((e->position.x + e->dimension.w) >= width) e->position.x = width - e->dimension.w;
+		//if(e->position.x <= 0) e->position.x = 0;
+		//if((e->position.y + e->dimension.h) >= height) e->position.y = height - e->dimension.h;
+		//if(e->position.y <= 0) e->position.y = 0;
+		if(e->velocity.y > 100.f) e->velocity.y = 0.f;
+		if((e->position.x + e->dimension.w) >= width) e->velocity.x *= -1.f;
+		if(e->position.x <= 0) e->velocity.x *= -1.f;
+		if((e->position.y + e->dimension.h) >= height) e->velocity.y *= -1.f;
+		if(e->position.y <= 0) e->velocity.y *= -1.f;
 		e++;
 	}
 }
