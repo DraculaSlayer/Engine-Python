@@ -36,10 +36,6 @@ class Texture(ctypes.Structure):
 	_fields_ = [("opaque", ctypes.c_byte * 32)]   # sizeof(Texture) = 32
 
 # Definir Entity como tipo opaco (debe definirse antes de usarlo en prototipos)
-class Entity(ctypes.Structure):
-	_fields_ = []
-
-# SDL_FRect es una estructura conocida, la definimos con sus campos
 class SDL_FRect(ctypes.Structure):
 	_fields_ = [
 		("x", ctypes.c_float),
@@ -47,6 +43,53 @@ class SDL_FRect(ctypes.Structure):
 		("w", ctypes.c_float),
 		("h", ctypes.c_float)
 	]
+class Vec2(ctypes.Structure):
+	_fields_ = [
+		("x", ctypes.c_float),
+		("y", ctypes.c_float)
+	]
+#typedef struct{
+#	// Public:
+#	uint32_t rows,columns;
+#	Vec2 position,velocity,aceleration;
+#	bool __physics;
+#	bool __colisions;
+#	// Private:
+#	SDL_FRect dimension;
+#	SDL_Renderer *renderer;
+#	SDL_Texture *sprite;
+#	uint32_t countFrame;
+#	SDL_FRect frame;
+#	uint32_t STATESPRITE;
+#	char * id;
+#	float timer,duration;
+#	uint32_t frames_t;
+#}Entity;
+class Entity(ctypes.Structure):
+	_fields_ = [
+		("rows", ctypes.c_uint32),
+		("columns", ctypes.c_uint32),
+		("position", Vec2),
+		("velocity", Vec2),
+		("aceleration", Vec2),
+		("physics", ctypes.c_bool),
+		("colisions", ctypes.c_bool),
+		("dimension", SDL_FRect)
+	]
+	def SetStateColisions(self,state):
+		self.colisions = ctypes.c_bool(state)
+	def SetPosition(self,x,y):
+		self.position.x = ctypes.c_float(x)
+		self.position.y = ctypes.c_float(y)
+	def SetVelocity(self,x,y):
+		self.velocity.x = ctypes.c_float(x)
+		self.velocity.y = ctypes.c_float(y)
+	def SetAceleration(self,x,y):
+		self.aceleration.x = ctypes.c_float(x)
+		self.aceleration.y = ctypes.c_float(y)
+
+# SDL_FRect es una estructura conocida, la definimos con sus campos
+
 
 # ------------------------------------------------------------
 # Prototipos de funciones (ahora Entity ya está definido)
@@ -534,6 +577,8 @@ class EntityManagerPy:
 		libgame.SetFrame(e,ctypes.c_int(x),ctypes.c_int(y),ctypes.c_int(state))
 	def SetDimension(self,e,scale):
 		libgame.SetDimension(e,ctypes.c_float(scale))
+	def SetStateColisions(self,e,state):
+		e.__colisions = ctypes.c_bool(state)
 	def Draw(self,dt,cam):
 		libgame.DrawEntities(ctypes.byref(self.man),dt,cam)
 		libgame.ActivePhysics(self.app._get_app_ptr(),ctypes.byref(self.man),self.app.GetDeltaTime())
