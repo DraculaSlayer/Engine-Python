@@ -6,10 +6,10 @@
 typedef struct{
 	int WIDTH_t,HEIGHT_t;
 	SDL_Window *window;
-}Phisics;
+}Physics;
 
-void Init_physicsSystem(Phisics *p,EntityManager *man,SDL_Window *window);
-void physicsSystem(Phisics *p,EntityManager *man,float dt);
+void Init_physicsSystem(Physics *p,EntityManager *man,SDL_Window *window);
+void physicsSystem(Physics *p,EntityManager *man,float dt);
 
 
 

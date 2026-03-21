@@ -27,6 +27,8 @@ typedef struct{
 	// Public:
 	uint32_t rows,columns;
 	Vec2 position,velocity,aceleration;
+	bool physics;
+	bool colisions;
 	// Private:
 	SDL_FRect dimension;
 	SDL_Renderer *renderer;
