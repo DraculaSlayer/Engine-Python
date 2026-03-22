@@ -15,7 +15,7 @@ class SDL_Renderer(ctypes.Structure):
 	_fields_ = []
 
 class APP(ctypes.Structure):
-	_fields_ = [("opaque", ctypes.c_byte * 272)]   # sizeof(APP) = 272
+	_fields_ = [("opaque", ctypes.c_byte * 280)]   # sizeof(APP) = 280
 
 class EntityManager(ctypes.Structure):
 	_fields_ = [("opaque", ctypes.c_byte * 32)]   # sizeof(EntityManager) = 32
@@ -27,7 +27,7 @@ class Vector(ctypes.Structure):
 	_fields_ = [("opaque", ctypes.c_byte * 24)]   # sizeof(Vector) = 24
 
 class Timer(ctypes.Structure):
-	_fields_ = [("opaque", ctypes.c_byte * 48)]   # sizeof(Timer) = 48
+	_fields_ = [("opaque", ctypes.c_byte * 56)]   # sizeof(Timer) = 56
 
 class Phisics(ctypes.Structure):
 	_fields_ = [("opaque", ctypes.c_byte * 16)]   # sizeof(Phisics) = 16
@@ -110,6 +110,9 @@ libgame.Render_1.restype = None
 
 libgame.GetDeltaTime.argtypes = [ctypes.POINTER(APP)]
 libgame.GetDeltaTime.restype = ctypes.c_float
+
+libgame.GetFPS.argtypes = [ctypes.POINTER(APP)]
+libgame.GetFPS.restype = ctypes.c_float
 
 # EVENTOS
 libgame.GetEvent.argtypes = [ctypes.POINTER(APP),ctypes.c_int]
@@ -545,6 +548,8 @@ class Aplication:
 		return libgame.GetCam(self._get_app_ptr())
 	def GetEvent(self,EVENT):
 		return libgame.GetEvent(self._get_app_ptr(),ctypes.c_int(EVENT))
+	def GetFPS(self):
+		return libgame.GetFPS(self._get_app_ptr())
 
 class EntityManagerPy:
 	def __init__(self,app):
