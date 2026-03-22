@@ -79,12 +79,14 @@ void SetFrame(Entity* e,int col,int row,int state)
 	e->STATESPRITE = state;
 }
 
+
 void SetDimension(Entity* e,float scale)
 {
 	e->dimension.w *= scale;
 	e->dimension.h *= scale;
 }
 
+float GetFPS(APP* app){ return (float)app->time.frames; }
 
 float GetDeltaTime(APP* app){ return app->dt; }
 SDL_FRect GetCam(APP *app) {
