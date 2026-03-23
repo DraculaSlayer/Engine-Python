@@ -18,6 +18,8 @@ void InitEntity(Entity* e,Texture *texture,char *id,SDL_Renderer *renderer)
 	e->frames_t=0;
 	e->timer=0;
 	e->duration=0.16;
+	e->physics = true;
+	e->colisions = true;
 }
 void ChangSprite(Entity *e,Texture *texture)
 {

@@ -79,19 +79,28 @@ void SetFrame(Entity* e,int col,int row,int state)
 	e->STATESPRITE = state;
 }
 
+
 void SetDimension(Entity* e,float scale)
 {
 	e->dimension.w *= scale;
 	e->dimension.h *= scale;
 }
 
+float GetFPS(APP* app){ return (float)app->time.frames; }
 
 float GetDeltaTime(APP* app){ return app->dt; }
-SDL_FRect GetCam(APP *app) { return app->cam; }
+SDL_FRect GetCam(APP *app) {
+	int x,y;
+	SDL_GetWindowSize(app->window,&x,&y);
+	app->cam.w = (float)x;
+	app->cam.h = (float)y;
+	return app->cam;
+}
 bool GetEvent(APP* app,uint32_t EVENT)
 {
 	//const bool* keys = SDL_GetKeyboardState(nullptr);
 	//return keys[EVENT];
+	(void)app;
 	return (SDL_GetKeyboardState(nullptr))[EVENT];
 }
 
@@ -118,23 +127,27 @@ void ActivePhysics(APP* app,EntityManager* man,float dt)
 	physicsSystem(&app->p,man,dt);
 }
 
-void Render_1(APP *app)
+void DrawBegin(APP *app)
 {
 	float speed = 400.f;
 	limit_fps_start(&app->time);
 	app->dt = getDeltaTime(&app->time);
 	Vec2Zero(&app->camVel);
+
+  /*
 	if(app->keys[SDL_SCANCODE_W]) app->camVel.y-=1.f;
 	if(app->keys[SDL_SCANCODE_S]) app->camVel.y+=1.f;
 	if(app->keys[SDL_SCANCODE_A]) app->camVel.x-=1.f;
 	if(app->keys[SDL_SCANCODE_D]) app->camVel.x+=1.f;
+  */
+
 	app->cam.x += speed * app->camVel.x * app->dt;
 	app->cam.y += speed * app->camVel.y * app->dt;
 	fps(&app->time,app->window);
 	SDL_RenderClear(app->renderer);
 }
 
-void Render_2(APP *app)
+void DrawEnd(APP *app)
 {
 	SDL_SetRenderDrawColor(app->renderer,0xff,0xff,0xff,0xff);
 	SDL_RenderPresent(app->renderer);
@@ -152,6 +165,14 @@ void Destroy(APP *app)
 
 int main()
 {
-	SDL_Log("sizeof(APP) => %d",sizeof(APP));
+	SDL_Log("\033c");
+	SDL_Log("sizeof(Entity)         => %ld BYTES",sizeof(Entity));
+	SDL_Log("sizeof(EntityManager)  => %ld BYTES",sizeof(EntityManager));
+	SDL_Log("sizeof(APP)            => %ld BYTES",sizeof(APP));
+	SDL_Log("sizeof(Timer)          => %ld BYTES",sizeof(Timer));
+	SDL_Log("sizeof(Engine)         => %ld BYTES",sizeof(Engine));
+	SDL_Log("sizeof(Physics)        => %ld BYTES",sizeof(Physics));
+	SDL_Log("sizeof(TextureManager) => %ld BYTES",sizeof(TextureManager));
+	SDL_Log("sizeof(Texture)        => %ld BYTES",sizeof(Texture));
 }
 

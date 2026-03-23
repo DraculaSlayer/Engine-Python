@@ -13,7 +13,7 @@ typedef struct{
 	SDL_Renderer *renderer;
 	Timer time;
 	SDL_Event e;
-	Phisics p;
+	Physics p;
 	int width_t;
 	int height_t;
 	float mouse_x,mouse_y;

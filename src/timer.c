@@ -40,6 +40,7 @@ void fps(Timer *timer,SDL_Window *window)
 		SDL_SetWindowTitle(window,title);
 		timer->nbFrame = 0;
 		timer->lastTime += 1.0;
+		timer->frames = frames;
 	}
 }
 

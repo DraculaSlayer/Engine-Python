@@ -15,7 +15,7 @@ class SDL_Renderer(ctypes.Structure):
 	_fields_ = []
 
 class APP(ctypes.Structure):
-	_fields_ = [("opaque", ctypes.c_byte * 272)]   # sizeof(APP) = 272
+	_fields_ = [("opaque", ctypes.c_byte * 280)]   # sizeof(APP) = 280
 
 class EntityManager(ctypes.Structure):
 	_fields_ = [("opaque", ctypes.c_byte * 32)]   # sizeof(EntityManager) = 32
@@ -27,7 +27,7 @@ class Vector(ctypes.Structure):
 	_fields_ = [("opaque", ctypes.c_byte * 24)]   # sizeof(Vector) = 24
 
 class Timer(ctypes.Structure):
-	_fields_ = [("opaque", ctypes.c_byte * 48)]   # sizeof(Timer) = 48
+	_fields_ = [("opaque", ctypes.c_byte * 56)]   # sizeof(Timer) = 56
 
 class Phisics(ctypes.Structure):
 	_fields_ = [("opaque", ctypes.c_byte * 16)]   # sizeof(Phisics) = 16
@@ -36,10 +36,6 @@ class Texture(ctypes.Structure):
 	_fields_ = [("opaque", ctypes.c_byte * 32)]   # sizeof(Texture) = 32
 
 # Definir Entity como tipo opaco (debe definirse antes de usarlo en prototipos)
-class Entity(ctypes.Structure):
-	_fields_ = []
-
-# SDL_FRect es una estructura conocida, la definimos con sus campos
 class SDL_FRect(ctypes.Structure):
 	_fields_ = [
 		("x", ctypes.c_float),
@@ -47,6 +43,53 @@ class SDL_FRect(ctypes.Structure):
 		("w", ctypes.c_float),
 		("h", ctypes.c_float)
 	]
+class Vec2(ctypes.Structure):
+	_fields_ = [
+		("x", ctypes.c_float),
+		("y", ctypes.c_float)
+	]
+#typedef struct{
+#	// Public:
+#	uint32_t rows,columns;
+#	Vec2 position,velocity,aceleration;
+#	bool __physics;
+#	bool __colisions;
+#	// Private:
+#	SDL_FRect dimension;
+#	SDL_Renderer *renderer;
+#	SDL_Texture *sprite;
+#	uint32_t countFrame;
+#	SDL_FRect frame;
+#	uint32_t STATESPRITE;
+#	char * id;
+#	float timer,duration;
+#	uint32_t frames_t;
+#}Entity;
+class Entity(ctypes.Structure):
+	_fields_ = [
+		("rows", ctypes.c_uint32),
+		("columns", ctypes.c_uint32),
+		("position", Vec2),
+		("velocity", Vec2),
+		("aceleration", Vec2),
+		("physics", ctypes.c_bool),
+		("colisions", ctypes.c_bool),
+		("dimension", SDL_FRect)
+	]
+	def SetStateColisions(self,state):
+		self.colisions = ctypes.c_bool(state)
+	def SetPosition(self,x,y):
+		self.position.x = ctypes.c_float(x)
+		self.position.y = ctypes.c_float(y)
+	def SetVelocity(self,x,y):
+		self.velocity.x = ctypes.c_float(x)
+		self.velocity.y = ctypes.c_float(y)
+	def SetAceleration(self,x,y):
+		self.aceleration.x = ctypes.c_float(x)
+		self.aceleration.y = ctypes.c_float(y)
+
+# SDL_FRect es una estructura conocida, la definimos con sus campos
+
 
 # ------------------------------------------------------------
 # Prototipos de funciones (ahora Entity ya está definido)
@@ -62,11 +105,14 @@ libgame.CreateEntityManager.restype = None
 libgame.ActivePhysics.argtypes = [ctypes.POINTER(APP),ctypes.POINTER(EntityManager),ctypes.c_float]
 libgame.ActivePhysics.restype = None
 
-libgame.Render_1.argtypes = [ctypes.POINTER(APP)]
-libgame.Render_1.restype = None
+libgame.DrawBegin.argtypes = [ctypes.POINTER(APP)]
+libgame.DrawBegin.restype = None
 
 libgame.GetDeltaTime.argtypes = [ctypes.POINTER(APP)]
 libgame.GetDeltaTime.restype = ctypes.c_float
+
+libgame.GetFPS.argtypes = [ctypes.POINTER(APP)]
+libgame.GetFPS.restype = ctypes.c_float
 
 # EVENTOS
 libgame.GetEvent.argtypes = [ctypes.POINTER(APP),ctypes.c_int]
@@ -76,8 +122,8 @@ libgame.GetEvent.restype = ctypes.c_bool
 libgame.GetCam.argtypes = [ctypes.POINTER(APP)]
 libgame.GetCam.restype = SDL_FRect
 
-libgame.Render_2.argtypes = [ctypes.POINTER(APP)]
-libgame.Render_2.restype = None
+libgame.DrawEnd.argtypes = [ctypes.POINTER(APP)]
+libgame.DrawEnd.restype = None
 
 libgame.EventProcess_Exit.argtypes = [ctypes.POINTER(APP)]
 libgame.EventProcess_Exit.restype = ctypes.c_bool
@@ -489,9 +535,9 @@ class Aplication:
 	def EventProcess(self):
 		return libgame.EventProcess_Exit(self._get_app_ptr())
 	def DrawBegin(self):
-		libgame.Render_1(self._get_app_ptr())
+		libgame.DrawBegin(self._get_app_ptr())
 	def DrawEnd(self):
-		libgame.Render_2(self._get_app_ptr())
+		libgame.DrawEnd(self._get_app_ptr())
 	def Quit(self):
 		libgame.Destroy(self._get_app_ptr())
 	def CreateEntityManager(self):
@@ -502,6 +548,8 @@ class Aplication:
 		return libgame.GetCam(self._get_app_ptr())
 	def GetEvent(self,EVENT):
 		return libgame.GetEvent(self._get_app_ptr(),ctypes.c_int(EVENT))
+	def GetFPS(self):
+		return libgame.GetFPS(self._get_app_ptr())
 
 class EntityManagerPy:
 	def __init__(self,app):
@@ -534,6 +582,8 @@ class EntityManagerPy:
 		libgame.SetFrame(e,ctypes.c_int(x),ctypes.c_int(y),ctypes.c_int(state))
 	def SetDimension(self,e,scale):
 		libgame.SetDimension(e,ctypes.c_float(scale))
+	def SetStateColisions(self,e,state):
+		e.__colisions = ctypes.c_bool(state)
 	def Draw(self,dt,cam):
 		libgame.DrawEntities(ctypes.byref(self.man),dt,cam)
 		libgame.ActivePhysics(self.app._get_app_ptr(),ctypes.byref(self.man),self.app.GetDeltaTime())

@@ -16,6 +16,7 @@ typedef struct{
 	int b;
 	int countFPS;
 	const char *title;
+	double frames;
 }Timer;
 
 
