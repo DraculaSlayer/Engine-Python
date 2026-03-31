@@ -19,16 +19,19 @@ class SDL_Renderer(ctypes.Structure):
 
 
 class APP(ctypes.Structure):
-	_fields_ = [("opaque", ctypes.c_byte * 312)]   # sizeof(APP) = 312
+    _fields_ = [("opaque", ctypes.c_byte * 312)]   # sizeof(APP) = 312
+
 
 class EntityManager(ctypes.Structure):
     _fields_ = [("opaque", ctypes.c_byte * 32)]   # sizeof(EntityManager) = 32
 
     _fields_ = [("opaque", ctypes.c_byte * 48)]   # sizeof(EntityManager) = 48
 
-	_fields_ = [("opaque", ctypes.c_byte * 48)]   # sizeof(EntityManager) = 48
+    _fields_ = [("opaque", ctypes.c_byte * 48)]   # sizeof(EntityManager) = 48
 
-	_fields_ = [("opaque", ctypes.c_byte * 48)]   # sizeof(EntityManager) = 48
+    # sizeof(EntityManager) = 48
+    _fields_ = [("opaque", ctypes.c_byte * 48)]
+
 
 class TextureManager(ctypes.Structure):
     _fields_ = [("opaque", ctypes.c_byte * 16)]   # sizeof(TextureManager) = 16
