@@ -9,6 +9,8 @@
 #include <stb_ds_implementation.c.h>
 #include <../lib/glad/glad.h>
 
+#include <debug_mode.h>
+
 #ifdef _WIN32
 #include <windows.h>
 #include <stdio.h>
@@ -119,36 +121,43 @@ bool GetEvent(APP* app,uint32_t EVENT)
 	return (SDL_GetKeyboardState(nullptr))[EVENT];
 }
 
-size_t GetMem() {
-
+size_t GetMem()
+{
+/*
+ *	Compilation => -Wall -Werror -Wpedantic
+ *	Rule => tabs are tabs, not spaces, please!
+*/
 #ifdef _WIN32
-  PROCESS_MEMORY_COUNTERS pmc;
-  if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
-    return (size_t)(pmc.WorkingSetSize / 2048); // Return the value in MB
-  }
+	PROCESS_MEMORY_COUNTERS pmc;
+	if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
+		return (size_t)(pmc.WorkingSetSize / 2048); // Return the value in MB
+	}
 #endif
 
 #ifdef __linux__
-  FILE* fp = fopen("/proc/self/status", "r");
-  char lines[100];
-  char *error;
+	FILE* fp = fopen("/proc/self/status", "r");
+	char lines[100];
+	// Initialize error to null
+	char *error = nullptr;
+	// gcc => non declared, put this and initialize
+	size_t num_mem = 0;
 
-  while (fgets(lines, sizeof(lines), fp)) {
-    if (strncmp(lines, "VmRSS:", 6) == 0) { // Returns 0 if everything went well
-      size_t num_mem = strtol(lines + 6, &error, 10); // Read the line information to get the amount in kb, start to read from the character 6
-      
-      if (lines == error) {
-        printf("Error: read file for ram");
-        return 0;
-      }else {
-        fclose(fp);
-        return (size_t)(num_mem / 1048); //Return the value in MB
-      }
-      break;
-    }
-  }
-#endif
+	while (fgets(lines, sizeof(lines), fp)) {
+		if (strncmp(lines, "VmRSS:", 6) == 0){ // Returns 0 if everything went well
+			num_mem = strtol(lines + 6, &error, 10);
+			// Read the line information to get the amount in kb, start to read from the character 6
+			// if (lines == error) {
+			printf("Error: read file for ram");
+			return 0;
+		}else {
+			fclose(fp);
+			return (size_t)(num_mem / 1048); //Return the value in MB
+		}
+		break;
+	}
+	return num_mem;
 }
+#endif
 
 bool EventProcess_Exit(APP *app)
 {
@@ -166,9 +175,29 @@ void CreateEntityManager(APP* app,EntityManager* man)
 	Init_physicsSystem(&app->p,man,app->window);
 }
 
+
+static int SDLCALL MASK_physicsSystem(void *ptr)
+{
+	Physics *p = ptr;
+	if(p->man->entities != nullptr)
+		physicsSystem(p);
+	return 0;
+}
+
 void ActivePhysics(APP* app,EntityManager* man,float dt)
 {
-	physicsSystem(&app->p,man,dt);
+	app->p.dt = dt;
+	app->p.man = man;
+	if(!SDL_GetAtomicInt(&app->p.a)){
+		SDL_WaitThread(app->p.t,nullptr);
+		app->p.t = SDL_CreateThread(MASK_physicsSystem,"PHYSICS_THREAD",&app->p);
+		SDL_AtomicIncRef(&app->p.a);
+	}else if(SDL_GetAtomicInt(&app->p.a)){
+		SDL_ThreadState statePhysics = SDL_GetThreadState(app->p.t);
+		if(statePhysics != SDL_THREAD_ALIVE || statePhysics == SDL_THREAD_COMPLETE)
+			SDL_AtomicDecRef(&app->p.a);
+	}
+	//physicsSystem(&app->p,man,dt);
 }
 
 void DrawBegin(APP *app)
@@ -200,6 +229,10 @@ void DrawEnd(APP *app)
 
 void Destroy(APP *app)
 {
+	if(app->p.t){
+		SDL_WaitThread(app->p.t,nullptr);
+		app->p.t = nullptr;
+	}
 	SDL_DestroyRenderer(app->renderer);
 	SDL_DestroyWindow(app->window);
 	SDL_Quit();
@@ -216,5 +249,11 @@ int main()
 	SDL_Log("sizeof(Physics)        => %ld BYTES",sizeof(Physics));
 	SDL_Log("sizeof(TextureManager) => %ld BYTES",sizeof(TextureManager));
 	SDL_Log("sizeof(Texture)        => %ld BYTES",sizeof(Texture));
+#ifdef __MODE_DEBUG__
+	APP app;
+	Init(&app,"Mode Debug");
+	game(&app);
+	Destroy(&app);
+#endif // __MODE_DEBUG__
 }
 
