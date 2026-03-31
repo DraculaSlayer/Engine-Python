@@ -23,12 +23,10 @@ class APP(ctypes.Structure):
 
 
 class EntityManager(ctypes.Structure):
-<<<<<<< HEAD
     _fields_ = [("opaque", ctypes.c_byte * 32)]   # sizeof(EntityManager) = 32
 
-=======
-	_fields_ = [("opaque", ctypes.c_byte * 48)]   # sizeof(EntityManager) = 48
->>>>>>> 2bb78a3b6198990048b17738e86ac3cefde2831f
+    _fields_ = [("opaque", ctypes.c_byte * 48)]   # sizeof(EntityManager) = 48
+
 
 class TextureManager(ctypes.Structure):
     _fields_ = [("opaque", ctypes.c_byte * 16)]   # sizeof(TextureManager) = 16
@@ -592,46 +590,63 @@ class Aplication:
 
     def GetFPS(self):
         return libgame.GetFPS(self._get_app_ptr())
+
     def GetMem(self):
         return libgame.GetMem()
 
+
 class EntityManagerPy:
-    def __init__(self,app):
+    def __init__(self, app):
         self.app = app
         self.man = EntityManager()
-        libgame.CreateEntityManager(app._get_app_ptr(),ctypes.byref(self.man))
-    def LoadSprite(self,path,nameSprite):
-        libgame.LoadSprite_EntityManager(ctypes.byref(self.man),path.encode(),nameSprite.encode())
-    def ChangSprite(self,entity,nameSprite):
-        if isinstance(entity,str):
+        libgame.CreateEntityManager(app._get_app_ptr(), ctypes.byref(self.man))
+
+    def LoadSprite(self, path, nameSprite):
+        libgame.LoadSprite_EntityManager(ctypes.byref(
+            self.man), path.encode(), nameSprite.encode())
+
+    def ChangSprite(self, entity, nameSprite):
+        if isinstance(entity, str):
             entity = entity.encode()
-        if isinstance(nameSprite,str):
+        if isinstance(nameSprite, str):
             nameSprite = nameSprite.encode()
-        libgame.ChangSprite_EntityManager(ctypes.byref(self.man),entity,nameSprite)
-    def CreateEntity(self,nameSprite,nameEntity):
-        libgame.CreateEntity(ctypes.byref(self.man),nameSprite.encode(),nameEntity.encode())
-    def SearchEntity(self,nameEntity):
-        if isinstance(nameEntity,str):
+        libgame.ChangSprite_EntityManager(
+            ctypes.byref(self.man), entity, nameSprite)
+
+    def CreateEntity(self, nameSprite, nameEntity):
+        libgame.CreateEntity(ctypes.byref(self.man),
+                             nameSprite.encode(), nameEntity.encode())
+
+    def SearchEntity(self, nameEntity):
+        if isinstance(nameEntity, str):
             nameEntity = nameEntity.encode()
-        return libgame.SearchEntity(ctypes.byref(self.man),nameEntity)
-    def SetPosition(self,e,x,y):
-        libgame.SetPosition(e,ctypes.c_float(x),ctypes.c_float(y))
-    def SetVelocity(self,e,x,y):
-        libgame.SetVelocity(e,ctypes.c_float(x),ctypes.c_float(y))
-    def SetAceleration(self,e,x,y):
-        libgame.SetAceleration(e,ctypes.c_float(x),ctypes.c_float(y))
-    def SetFrame(self,e,x,y,state):
-        if isinstance(state,AnimationToken):
+        return libgame.SearchEntity(ctypes.byref(self.man), nameEntity)
+
+    def SetPosition(self, e, x, y):
+        libgame.SetPosition(e, ctypes.c_float(x), ctypes.c_float(y))
+
+    def SetVelocity(self, e, x, y):
+        libgame.SetVelocity(e, ctypes.c_float(x), ctypes.c_float(y))
+
+    def SetAceleration(self, e, x, y):
+        libgame.SetAceleration(e, ctypes.c_float(x), ctypes.c_float(y))
+
+    def SetFrame(self, e, x, y, state):
+        if isinstance(state, AnimationToken):
             state = state.value
-        libgame.SetFrame(e,ctypes.c_int(x),ctypes.c_int(y),ctypes.c_int(state))
-    def SetDimension(self,e,scale):
-        libgame.SetDimension(e,ctypes.c_float(scale))
-    def SetStateColisions(self,e,state):
+        libgame.SetFrame(e, ctypes.c_int(
+            x), ctypes.c_int(y), ctypes.c_int(state))
+
+    def SetDimension(self, e, scale):
+        libgame.SetDimension(e, ctypes.c_float(scale))
+
+    def SetStateColisions(self, e, state):
         e.__colisions = ctypes.c_bool(state)
-    def Draw(self,dt,cam):
-        libgame.DrawEntities(ctypes.byref(self.man),dt,cam)
-        libgame.ActivePhysics(self.app._get_app_ptr(),ctypes.byref(self.man),self.app.GetDeltaTime())
+
+    def Draw(self, dt, cam):
+        libgame.DrawEntities(ctypes.byref(self.man), dt, cam)
+        libgame.ActivePhysics(self.app._get_app_ptr(), ctypes.byref(
+            self.man), self.app.GetDeltaTime())
+
     def Free(self):
         libgame.DestroyEntityManager(ctypes.byref(self.man))
-
-
